@@ -1,0 +1,73 @@
+{
+  "quran": {
+    "name": "AlQuran Cloud",
+    "url": "https://alquran.cloud",
+    "api": "https://api.alquran.cloud/v1",
+    "textSource": "Tanzil Quran text",
+    "translations": {
+      "en.sahih": "Saheeh International",
+      "en.pickthall": "Marmaduke Pickthall",
+      "en.yusufali": "Abdullah Yusuf Ali",
+      "en.hilali": "Hilali & Khan",
+      "ur.jalandhry": "Fateh Muhammad Jalandhry",
+      "id.indonesian": "Bahasa Indonesia",
+      "fr.hamidullah": "Muhammad Hamidullah",
+      "tr.diyanet": "Diyanet İşleri Başkanlığı",
+      "bn.bengali": "Muhiuddin Khan",
+      "ru.kuliev": "Elmir Kuliev"
+    },
+    "audio": {
+      "provider": "Islamic Network",
+      "url": "https://cdn.islamic.network/quran/audio",
+      "reciters": {
+        "ar.alafasy": "Mishary Alafasy",
+        "ar.abdulbasitmurattal": "Abdul Basit (Murattal)",
+        "ar.husary": "Mahmoud Khalil Al-Husary",
+        "ar.minshawi": "Mohamed Minshawi",
+        "ar.muhammadayyoub": "Muhammad Ayyoub"
+      }
+    }
+  },
+  "hadith": {
+    "name": "Hadith API (fawazahmed0/hadith-api)",
+    "url": "https://github.com/fawazahmed0/hadith-api",
+    "api": "https://cdn.jsdelivr.net/gh/fawazahmed0/hadith-api@1",
+    "collections": {
+      "bukhari": "Sahih al-Bukhari",
+      "muslim": "Sahih Muslim",
+      "abudawud": "Sunan Abu Dawud",
+      "tirmidhi": "Jami' at-Tirmidhi",
+      "nasai": "Sunan an-Nasa'i",
+      "ibnmajah": "Sunan Ibn Majah"
+    },
+    "note": "Arabic text and English and Urdu translations are provided by the upstream dataset and matched by hadith number. Translator attribution is not included in the upstream Urdu edition metadata. Always verify wording with a qualified scholar or the original Arabic text."
+  },
+  "duas": {
+    "name": "Hisn al-Muslim — OpenDua edition (data v0.0.4)",
+    "url": "https://opendua.org",
+    "book": "Hisn al-Muslim (Fortress of the Muslim)",
+    "author": "Said ibn Ali ibn Wahf Al-Qahtani",
+    "licence": "https://opendua.org/licence/data"
+  },
+  "tafsir": {
+    "name": "Quran Foundation Content API",
+    "url": "https://quran.com",
+    "catalogue": "https://api.quran.com/api/v4/resources/tafsirs",
+    "documentation": "https://api-docs.quran.foundation/docs/content_apis_versioned/4.0.0/tafsir/",
+    "note": "Tafsir passages are displayed verbatim from their selected edition and are never generated or paraphrased by NoorHub."
+  },
+  "prayerTimes": {
+    "name": "Adhan.js",
+    "url": "https://github.com/batoulapps/adhan-js",
+    "note": "Astronomical prayer time calculation performed locally in the browser. No location data is sent to a server."
+  },
+  "hijriCalendar": {
+    "name": "Intl.DateTimeFormat — islamic-umalqura calendar",
+    "note": "Tabular/Umm al-Qura conversion. Local moon sighting may differ by a day."
+  },
+  "nisab": {
+    "name": "Gold API",
+    "url": "https://gold-api.com",
+    "note": "Spot gold (XAU) and silver (XAG) prices used for nisab estimation."
+  }
+}

@@ -1,0 +1,333 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ------------------------------------------------------------------ */
+/* NoorHub design tokens                                              */
+/* Warm ivory paper, deep emerald, muted sage, antique gold.          */
+/* ------------------------------------------------------------------ */
+@theme {
+  --color-ivory: #fbf8f1;
+  --color-ivory-deep: #f5efe3;
+  --color-sand: #efe7d8;
+  --color-stone-warm: #e4dbcb;
+
+  --color-emerald-ink: #0d3b2e;
+  --color-emerald-deep: #10493a;
+  --color-emerald: #14614a;
+  --color-emerald-soft: #2c7c62;
+  --color-sage: #7f9c88;
+  --color-sage-soft: #b6c7ba;
+
+  --color-gold: #a5813a;
+  --color-gold-soft: #c9a961;
+  --color-gold-pale: #e7d9b5;
+
+  --color-ink: #1d211f;
+  --color-ink-soft: #3c4440;
+  --color-ink-mute: #6c746f;
+
+  --color-night: #0e1513;
+  --color-night-soft: #151e1a;
+  --color-night-line: #263129;
+  --color-night-text: #e9e5da;
+  --color-night-mute: #a3ada6;
+
+  --font-sans: var(--font-manrope), ui-sans-serif, system-ui, sans-serif;
+  --font-display: var(--font-newsreader), ui-serif, Georgia, serif;
+  --font-arabic: var(--font-amiri), "Noto Naskh Arabic", "Scheherazade New", serif;
+
+  --radius-card: 14px;
+}
+
+@layer base {
+  :root {
+    color-scheme: light;
+    --surface: var(--color-ivory);
+    --surface-raised: #ffffff;
+    --surface-sunken: var(--color-ivory-deep);
+    --line: #e2d9c8;
+    --fg: var(--color-ink);
+    --fg-mute: var(--color-ink-mute);
+  }
+
+  .dark {
+    color-scheme: dark;
+    --surface: var(--color-night);
+    --surface-raised: var(--color-night-soft);
+    --surface-sunken: #0b100e;
+    --line: var(--color-night-line);
+    --fg: var(--color-night-text);
+    --fg-mute: var(--color-night-mute);
+  }
+
+  * {
+    border-color: var(--line);
+  }
+
+  html {
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    background-color: var(--surface);
+    color: var(--fg);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+
+  h1,
+  h2,
+  h3,
+  h4 {
+    font-family: var(--font-display);
+    font-weight: 500;
+    line-height: 1.7;
+  }
+
+  :focus-visible {
+    outline: 2px solid var(--color-emerald);
+    outline-offset: 2px;
+    border-radius: 4px;
+  }
+
+  ::selection {
+    background: var(--color-gold-pale);
+    color: var(--color-emerald-ink);
+  }
+
+  /* Arabic reading rules */
+  [dir="rtl"],
+  .font-arabic {
+    font-family: var(--font-arabic);
+    font-feature-settings: "calt" 1, "liga" 1;
+  }
+
+  .font-arabic {
+    direction: rtl;
+    line-height: 2.15;
+    word-spacing: 0.06em;
+    text-align: right;
+  }
+
+  .font-urdu {
+    font-family: var(--font-urdu);
+    direction: rtl;
+    text-align: right;
+    line-height: 2;
+  }
+
+  input,
+  textarea,
+  select,
+  button {
+    font: inherit;
+  }
+
+  /* Calm, purposeful scrollbars */
+  ::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: color-mix(in oklab, var(--fg-mute) 30%, transparent);
+    border-radius: 999px;
+    border: 3px solid transparent;
+    background-clip: content-box;
+  }
+}
+
+@layer components {
+  .surface {
+    background-color: var(--surface-raised);
+    border: 1px solid var(--line);
+  }
+
+  .surface-sunken {
+    background-color: var(--surface-sunken);
+  }
+
+  .rule {
+    border-color: var(--line);
+  }
+
+  .text-mute {
+    color: var(--fg-mute);
+  }
+
+  /* Soft page backdrop: warm paper with a faint architectural band. */
+  .page-backdrop {
+    background-color: var(--surface);
+    background-image:
+      radial-gradient(
+        120% 70% at 50% -10%,
+        color-mix(in oklab, var(--color-emerald-ink) 7%, transparent),
+        transparent 60%
+      ),
+      linear-gradient(
+        to bottom,
+        color-mix(in oklab, var(--color-gold-soft) 12%, transparent),
+        transparent 320px
+      );
+  }
+
+  /* Traditional eight-point star lattice, drawn as SVG, very low contrast. */
+  .pattern-girih {
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='80' height='80' viewBox='0 0 80 80'%3E%3Cg fill='none' stroke='%23a5813a' stroke-width='0.6'%3E%3Cpath d='M40 4 51 17 68 12 63 29 76 40 63 51 68 68 51 63 40 76 29 63 12 68 17 51 4 40 17 29 12 12 29 17Z'/%3E%3Crect x='22' y='22' width='36' height='36' transform='rotate(45 40 40)'/%3E%3Crect x='26' y='26' width='28' height='28'/%3E%3C/g%3E%3C/svg%3E");
+    background-size: 80px 80px;
+  }
+
+  .pattern-fade {
+    mask-image: linear-gradient(to bottom, black, transparent);
+    -webkit-mask-image: linear-gradient(to bottom, black, transparent);
+  }
+
+  /* Mihrab arch used for the hero plate and section accents. */
+  .arch-top {
+    border-radius: 999px 999px var(--radius-card) var(--radius-card);
+  }
+
+  .hairline {
+    height: 1px;
+    background: linear-gradient(
+      to right,
+      transparent,
+      color-mix(in oklab, var(--color-gold) 55%, transparent),
+      transparent
+    );
+  }
+
+  .link-quiet {
+    color: var(--fg);
+    text-underline-offset: 4px;
+    text-decoration-color: color-mix(in oklab, var(--color-gold) 60%, transparent);
+  }
+  .link-quiet:hover {
+    text-decoration: underline;
+  }
+
+  .ayah-number {
+    font-variant-numeric: tabular-nums;
+    color: var(--color-gold);
+  }
+
+  /* Sanitized Tafseer HTML from the selected published edition. */
+  .tafsir-content {
+    color: var(--fg);
+    font-size: 1rem;
+    line-height: 2;
+  }
+  .tafsir-content > :first-child {
+    margin-top: 0;
+  }
+  .tafsir-content > :last-child {
+    margin-bottom: 0;
+  }
+  .tafsir-content h1,
+  .tafsir-content h2,
+  .tafsir-content h3,
+  .tafsir-content h4 {
+    margin-block: 1.6em 0.55em;
+    color: var(--fg);
+    font-size: 1.15em;
+    line-height: 1.65;
+  }
+  .tafsir-content p {
+    margin-block: 0.8em;
+  }
+  .tafsir-content ul,
+  .tafsir-content ol {
+    margin-block: 0.9em;
+    padding-inline-start: 1.5em;
+  }
+  .tafsir-content ul {
+    list-style: disc;
+  }
+  .tafsir-content ol {
+    list-style: decimal;
+  }
+  .tafsir-content li {
+    margin-block: 0.35em;
+  }
+  .tafsir-content blockquote {
+    margin-block: 1em;
+    border-inline-start: 2px solid color-mix(in oklab, var(--color-gold) 60%, transparent);
+    padding-inline-start: 1em;
+    color: var(--fg-mute);
+  }
+  .tafsir-content strong,
+  .tafsir-content b {
+    color: var(--fg);
+    font-weight: 700;
+  }
+  .tafsir-content [lang="ar"] {
+    font-family: var(--font-arabic);
+    line-height: 2.15;
+  }
+}
+
+@layer utilities {
+  .reading-measure {
+    max-width: 68ch;
+  }
+
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    scrollbar-width: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+@keyframes noor-fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-up {
+  animation: noor-fade-up 0.5s ease-out both;
+}
+
+@keyframes noor-shimmer {
+  100% {
+    transform: translateX(100%);
+  }
+}
+
+.skeleton {
+  position: relative;
+  overflow: hidden;
+  background: color-mix(in oklab, var(--fg-mute) 12%, transparent);
+  border-radius: 6px;
+}
+.skeleton::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  transform: translateX(-100%);
+  background-image: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in oklab, var(--surface-raised) 65%, transparent),
+    transparent
+  );
+  animation: noor-shimmer 1.6s infinite;
+}
