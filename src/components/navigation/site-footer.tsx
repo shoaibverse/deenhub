@@ -26,7 +26,12 @@ const COLUMNS: Array<{
   },
   {
     title: ur.footer.tools,
-    links: [{ label: ur.tools.zakat, href: "/zakat" }],
+    links: [
+      { label: ur.tools.zakat, href: "/zakat" },
+      { label: "My local hub", href: "/dashboard" },
+      { label: ur.tools.bookmarks, href: "/bookmarks" },
+      { label: "Settings", href: "/settings" },
+    ],
   },
   {
     title: ur.footer.about,

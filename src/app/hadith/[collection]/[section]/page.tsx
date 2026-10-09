@@ -3,8 +3,6 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { HadithCard } from "@/components/hadith/hadith-card";
 import { EmptyState, ErrorState, Note } from "@/components/ui/primitives";
-import { getSessionUser } from "@/lib/auth/session";
-import { listBookmarkedKeys } from "@/db/queries";
 import {
   getCollectionName,
   getCollectionSections,
@@ -40,9 +38,6 @@ export default async function HadithSectionPage({ params }: PageProps) {
   if (!isValidCollection(collection) || !Number.isInteger(sectionNumber) || sectionNumber < 1) {
     notFound();
   }
-
-  const user = await getSessionUser();
-  const bookmarks = user ? await listBookmarkedKeys(user.id, "hadith") : new Set<string>();
 
   let hadiths: Awaited<ReturnType<typeof getSectionHadiths>> | null = null;
   let failed = false;
@@ -110,12 +105,7 @@ export default async function HadithSectionPage({ params }: PageProps) {
         ) : (
           <div className="space-y-4">
             {hadiths.map((hadith) => (
-              <HadithCard
-                key={hadith.id}
-                hadith={hadith}
-                signedIn={Boolean(user)}
-                bookmarked={bookmarks.has(hadith.id)}
-              />
+              <HadithCard key={hadith.id} hadith={hadith} signedIn bookmarked={false} />
             ))}
           </div>
         )}

@@ -1,11 +1,11 @@
 "use client";
 
-import { useEffect, useRef, useState, useTransition } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { usePreferences } from "@/components/providers/preferences-provider";
 import { SaveBookmarkButton } from "@/components/duas/dua-card";
-import { saveReadingProgress } from "@/lib/actions/library";
+import { useLocalQuranProgress } from "@/hooks/use-local-data";
 import { Button, IconButton } from "@/components/ui/button";
 import {
   BookmarkIcon,
@@ -27,16 +27,14 @@ const BISMILLAH = "بِسْمِ ٱللَّهِ ٱلرَّحْمَٰنِ ٱلرَ
 export function QuranReader({
   content,
   surahAudioUrl,
-  signedIn,
-  bookmarkedAyahs,
   lastReadAyah,
   previous,
   next,
 }: {
   content: SurahContent;
   surahAudioUrl: string;
-  signedIn: boolean;
-  bookmarkedAyahs: string[];
+  signedIn?: boolean;
+  bookmarkedAyahs?: string[];
   lastReadAyah: number | null;
   previous: { number: number; englishName: string } | null;
   next: { number: number; englishName: string } | null;
@@ -45,16 +43,20 @@ export function QuranReader({
   const router = useRouter();
   const pathname = usePathname();
   const searchParams = useSearchParams();
-  const [bookmarks, setBookmarks] = useState(() => new Set(bookmarkedAyahs));
+  const localProgress = useLocalQuranProgress();
+  const savedForSurah = localProgress.progress.find(
+    (item) => item.surahNumber === content.surah.number,
+  );
   const [playing, setPlaying] = useState<number | "surah" | null>(null);
   const [copied, setCopied] = useState<string | null>(null);
-  const [savedAt, setSavedAt] = useState<number | null>(lastReadAyah);
-  const [pending, startTransition] = useTransition();
+  const [savedAt, setSavedAt] = useState<number | null>(
+    savedForSurah?.lastAyah ?? lastReadAyah,
+  );
   const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
-    setBookmarks(new Set(bookmarkedAyahs));
-  }, [bookmarkedAyahs]);
+    if (savedForSurah?.lastAyah) setSavedAt(savedForSurah.lastAyah);
+  }, [savedForSurah?.lastAyah]);
 
   useEffect(
     () => () => {
@@ -89,17 +91,14 @@ export function QuranReader({
   };
 
   const saveProgress = (ayahNumber: number) => {
-    if (!signedIn) {
-      router.push(`/login?next=${encodeURIComponent(pathname)}`);
-      return;
-    }
-    startTransition(async () => {
-      const result = await saveReadingProgress({
-        surahNumber: content.surah.number,
-        lastAyah: ayahNumber,
-      });
-      if (result.ok) setSavedAt(ayahNumber);
+    localProgress.saveProgress({
+      surahNumber: content.surah.number,
+      surahEnglishName: content.surah.englishName,
+      surahName: content.surah.name,
+      lastAyah: ayahNumber,
+      totalAyahs: content.surah.numberOfAyahs,
     });
+    setSavedAt(ayahNumber);
   };
 
   const copyAyah = async (ayahNumber: number, arabic: string, translation: string | null) => {
@@ -334,7 +333,6 @@ export function QuranReader({
                 <button
                   type="button"
                   onClick={() => saveProgress(ayah.numberInSurah)}
-                  disabled={pending}
                   className="inline-flex h-8 items-center rounded-full border border-[color:var(--line)] px-2.5 text-[0.6875rem] text-mute transition-colors hover:border-emerald/40 hover:text-[color:var(--fg)]"
                 >
                   <BookmarkIcon width={14} height={14} />
@@ -348,8 +346,6 @@ export function QuranReader({
                   reference={`${content.surah.name} · ${ayah.key} · ${editionName(content.edition)}`}
                   href={`/quran/${content.surah.number}#ayah-${ayah.numberInSurah}`}
                   snippet={ayah.translation ?? ayah.arabic}
-                  saved={bookmarks.has(ayah.key)}
-                  signedIn={signedIn}
                   labels={{ save: "Bookmark", saved: "Bookmarked" }}
                 />
               </div>
@@ -386,7 +382,6 @@ export function QuranReader({
               variant="secondary"
               size="sm"
               onClick={() => saveProgress(content.surah.numberOfAyahs)}
-              disabled={pending}
             >
               Mark surah as read
             </Button>

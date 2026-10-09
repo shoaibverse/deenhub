@@ -1,23 +1,21 @@
 "use client";
 
-import { useMemo, useState, useTransition } from "react";
+import { useMemo, useState } from "react";
 import Link from "next/link";
-import { deleteBookmark } from "@/lib/actions/library";
-import { EmptyState } from "@/components/ui/primitives";
-import { Segmented, inputClass } from "@/components/ui/primitives";
+import { useLocalBookmarks } from "@/hooks/use-local-data";
+import { EmptyState, Segmented, inputClass } from "@/components/ui/primitives";
 import { BookmarkIcon } from "@/components/ui/icons";
 import { cn } from "@/lib/utils/cn";
-import type { BookmarkItem } from "@/types";
 
 type TypeFilter = "all" | "quran" | "hadith" | "dua";
 type Sort = "newest" | "oldest" | "title";
 
-export function BookmarkList({ bookmarks }: { bookmarks: BookmarkItem[] }) {
-  const [items, setItems] = useState(bookmarks);
+export function BookmarkList() {
+  const local = useLocalBookmarks();
+  const items = local.bookmarks;
   const [filter, setFilter] = useState<TypeFilter>("all");
   const [sort, setSort] = useState<Sort>("newest");
   const [query, setQuery] = useState("");
-  const [pending, startTransition] = useTransition();
 
   const visible = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -37,12 +35,16 @@ export function BookmarkList({ bookmarks }: { bookmarks: BookmarkItem[] }) {
     });
   }, [items, filter, query, sort]);
 
-  const remove = (id: string) => {
-    startTransition(async () => {
-      const result = await deleteBookmark(id);
-      if (result.ok) setItems((current) => current.filter((item) => item.id !== id));
-    });
-  };
+  if (!local.ready) {
+    return (
+      <div className="space-y-4" aria-busy="true">
+        <p className="text-[0.8125rem] text-mute">Loading bookmarks saved on this device…</p>
+        {[0, 1, 2].map((index) => (
+          <div key={index} className="skeleton h-24 rounded-[12px]" />
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div>
@@ -89,8 +91,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: BookmarkItem[] }) {
       </div>
 
       <p className="mt-4 text-[0.8125rem] text-mute" aria-live="polite">
-        {visible.length} of {items.length} saved
-        {pending ? " · updating…" : ""}
+        {visible.length} of {items.length} saved on this device
       </p>
 
       {visible.length === 0 ? (
@@ -98,7 +99,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: BookmarkItem[] }) {
           <EmptyState
             icon={<BookmarkIcon />}
             title="No bookmarks yet."
-            description="Save an Ayah, Hadith or Dua and it will appear here."
+            description="Save an Ayah or Hadith and it will appear here. Everything stays in this browser."
             action={
               <Link href="/quran" className="link-quiet text-sm">
                 Open the Quran
@@ -117,9 +118,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: BookmarkItem[] }) {
                 <Link href={item.href} className="link-quiet font-display text-[1.0625rem]">
                   {item.title}
                 </Link>
-                {item.subtitle ? (
-                  <p className="mt-0.5 text-[0.75rem] text-mute">{item.subtitle}</p>
-                ) : null}
+                {item.subtitle ? <p className="mt-0.5 text-[0.75rem] text-mute">{item.subtitle}</p> : null}
                 {item.snippet ? (
                   <p className="mt-1.5 line-clamp-2 text-[0.875rem] leading-relaxed text-mute">
                     {item.snippet}
@@ -144,8 +143,7 @@ export function BookmarkList({ bookmarks }: { bookmarks: BookmarkItem[] }) {
                 </Link>
                 <button
                   type="button"
-                  onClick={() => remove(item.id)}
-                  disabled={pending}
+                  onClick={() => local.remove(item.id)}
                   className="rounded-full border border-[color:var(--line)] px-3 py-1.5 text-[0.75rem] text-mute hover:border-red-300 hover:text-red-700 dark:hover:border-red-900 dark:hover:text-red-300"
                 >
                   Delete

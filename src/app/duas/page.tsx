@@ -2,8 +2,6 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { DuaCard } from "@/components/duas/dua-card";
 import { EmptyState, Note, SectionHeading, inputClass } from "@/components/ui/primitives";
-import { getSessionUser } from "@/lib/auth/session";
-import { listFavoriteDuaIds } from "@/db/queries";
 import {
   DUA_COLLECTION,
   DUA_SOURCES,
@@ -36,9 +34,6 @@ export default async function DuasPage({ searchParams }: { searchParams: SearchP
   const entryId = first(params.entry) ?? null;
   const page = Math.max(1, Number(first(params.page) ?? "1") || 1);
   const perPage = 12;
-
-  const user = await getSessionUser();
-  const favourites = user ? await listFavoriteDuaIds(user.id) : new Set<string>();
 
   const focused = entryId ? getDuaById(entryId) : null;
   const { total, entries } = focused
@@ -137,12 +132,7 @@ export default async function DuasPage({ searchParams }: { searchParams: SearchP
           />
         ) : (
           entries.map((entry) => (
-            <DuaCard
-              key={entry.id}
-              entry={entry}
-              signedIn={Boolean(user)}
-              favorited={favourites.has(entry.id)}
-            />
+            <DuaCard key={entry.id} entry={entry} />
           ))
         )}
       </div>

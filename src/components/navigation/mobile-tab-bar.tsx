@@ -29,6 +29,9 @@ const MORE = [
   { label: ur.tools.calendar, href: "/calendar" },
   { label: ur.tools.tasbeeh, href: "/tasbeeh" },
   { label: ur.tools.zakat, href: "/zakat" },
+  { label: { en: "My hub" }, href: "/dashboard" },
+  { label: ur.tools.bookmarks, href: "/bookmarks" },
+  { label: { en: "Settings" }, href: "/settings" },
 ];
 
 export function MobileTabBar() {

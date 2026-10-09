@@ -3,7 +3,7 @@ import Link from "next/link";
 import { QuranSearchForm } from "@/components/quran/search-form";
 import { EmptyState, ErrorState, Note, SectionHeading } from "@/components/ui/primitives";
 import { editionName, QURAN_SOURCES, searchQuran, searchSurahNames } from "@/lib/quran/service";
-import { getPreferences } from "@/lib/auth/session";
+import { DEFAULT_PREFERENCES } from "@/lib/preferences";
 
 export const dynamic = "force-dynamic";
 
@@ -26,7 +26,7 @@ export default async function QuranSearchPage({
 }) {
   const params = await searchParams;
   const query = (first(params.q) ?? "").trim();
-  const edition = first(params.edition) ?? (await getPreferences()).translationEdition;
+  const edition = first(params.edition) ?? DEFAULT_PREFERENCES.translationEdition;
   const scope = first(params.scope) ?? "translation";
 
   const surahMatches = query.length >= 2 ? await searchSurahNames(query) : [];

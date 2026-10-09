@@ -1,7 +1,6 @@
 import type { Metadata } from "next";
 import { PrayerBoard } from "@/components/prayer/prayer-board";
 import { SectionHeading } from "@/components/ui/primitives";
-import { getSessionUser } from "@/lib/auth/session";
 
 export const metadata: Metadata = {
   title: "Prayer times",
@@ -10,17 +9,16 @@ export const metadata: Metadata = {
   alternates: { canonical: "/prayer" },
 };
 
-export default async function PrayerPage() {
-  const user = await getSessionUser();
+export default function PrayerPage() {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
       <SectionHeading
         eyebrow="Prayer"
         title="Today's prayer times"
-        description="Times are computed locally on your device from your coordinates and calculation method."
+        description="Times are computed locally on your device. Your location and method stay in this browser; no database is used."
       />
       <div className="mt-8">
-        <PrayerBoard signedIn={Boolean(user)} />
+        <PrayerBoard />
       </div>
     </div>
   );

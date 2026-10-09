@@ -1,10 +1,10 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import { SectionHeading } from "@/components/ui/primitives";
+import { Note, SectionHeading } from "@/components/ui/primitives";
 
 export const metadata: Metadata = {
   title: "Privacy",
-  description: "What NoorHub stores, where it is stored, and what it never collects.",
+  description: "What NoorHub keeps in your browser and what it never stores on a server.",
   alternates: { canonical: "/privacy" },
 };
 
@@ -13,96 +13,94 @@ export default function PrivacyPage() {
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6 lg:px-8">
       <SectionHeading
         eyebrow="Privacy"
-        title="What NoorHub stores"
-        description="Written plainly, so you can check it against what the app actually does."
+        title="Your personal data stays in your browser"
+        description="NoorHub does not require an account, authentication service or database connection."
       />
 
       <div className="mt-10 space-y-10 text-[1rem] leading-[1.8]">
+        <Note tone="gold">
+          NoorHub is local-first. Bookmarks, favorite duas, Quran progress, reading history, Tasbeeh
+          sessions, location and preferences are kept in your browser’s local storage—not in a
+          NoorHub database.
+        </Note>
+
         <section>
-          <h2 className="font-display text-xl">If you use NoorHub without an account</h2>
+          <h2 className="font-display text-xl">What stays on this device</h2>
+          <ul className="mt-3 list-inside list-disc space-y-2 text-mute">
+            <li>Theme, Arabic text size, translation and reciter choices.</li>
+            <li>Prayer calculation method and a location you choose or permit.</li>
+            <li>Quran bookmarks, last-read positions and reading history.</li>
+            <li>Favorite duas.</li>
+            <li>Your current Tasbeeh count and the sessions you choose to save.</li>
+            <li>Recent search terms, only when the search dialog stores them.</li>
+          </ul>
           <p className="mt-3">
-            Nothing is stored on a server. Your theme, Arabic text size, translation choice, tasbeeh
-            count, location choice and recent searches are kept in your browser’s local storage. You
-            can clear them at any time from{" "}
-            <Link href="/settings" className="link-quiet">
-              Settings
-            </Link>
-            .
-          </p>
-          <p className="mt-3">
-            Prayer times, the qibla bearing and the Hijri calendar are all calculated on your device.
-            NoorHub does not send your coordinates to a server.
+            This information does not automatically move to another browser or device. Clearing site
+            storage removes it permanently.
           </p>
         </section>
 
         <section>
-          <h2 className="font-display text-xl">If you create an account</h2>
-          <p className="mt-3">NoorHub stores:</p>
-          <ul className="mt-3 list-inside list-disc space-y-2 text-mute">
-            <li>Your email address, display name and a salted password hash.</li>
-            <li>A session record so you stay signed in, with an expiry date.</li>
-            <li>Your bookmarks: the type, reference and a short excerpt of what you saved.</li>
-            <li>Your Quran reading progress: the surah and the last ayah you marked.</li>
-            <li>The duas you marked as favourites, by their identifier.</li>
-            <li>Your tasbeeh sessions, if you choose to save them.</li>
-            <li>Your reading history entries, so the dashboard can show where you left off.</li>
-            <li>Your preferences: theme, text size, translation, reciter, prayer method and location.</li>
-          </ul>
+          <h2 className="font-display text-xl">No accounts or server profiles</h2>
           <p className="mt-3">
-            Passwords are never stored in plain text. Sessions are stored in an http-only cookie and
-            are deleted when they expire or when you sign out.
+            NoorHub does not offer sign-in or registration. It does not store an email address,
+            password, profile, session cookie, bookmark record or reading record in a database. The
+            application health check also does not connect to a database.
           </p>
         </section>
 
         <section>
           <h2 className="font-display text-xl">Location</h2>
           <p className="mt-3">
-            NoorHub asks for your location only when you choose “Use my location”, and the
-            coordinates are used immediately in your browser to calculate prayer times and the qibla
-            bearing. If you save them to your account, they are stored so your settings follow you to
-            another device. You can clear them at any time.
+            NoorHub asks for your location only when you select “Use my location”. Coordinates are
+            used in the browser to calculate prayer times and the qibla bearing. They remain in local
+            storage so your selected location survives a reload. You can clear it from Prayer or
+            Settings.
           </p>
         </section>
 
         <section>
-          <h2 className="font-display text-xl">Messages you send</h2>
+          <h2 className="font-display text-xl">Contact messages</h2>
           <p className="mt-3">
-            The contact form stores your name, email address and message so the maintainers can
-            reply. Messages are not published anywhere.
+            The contact form does not write to a database. If a public contact email is configured,
+            it opens your device’s mail application with the message prepared; you must send it from
+            there. If no email is configured, it only copies the message to your clipboard and says
+            clearly that nothing was sent.
           </p>
         </section>
 
         <section>
-          <h2 className="font-display text-xl">What NoorHub does not do</h2>
+          <h2 className="font-display text-xl">External content requests</h2>
+          <p className="mt-3">
+            Quran text, translations, recitation audio, Tafseer, hadith and metal prices are fetched
+            from the attributed providers listed on the{" "}
+            <Link href="/about#sources" className="link-quiet">
+              source page
+            </Link>
+            . Those providers receive a normal web request, including your IP address. Personal
+            bookmarks, progress, location and Tasbeeh history are not attached to those requests.
+          </p>
+        </section>
+
+        <section>
+          <h2 className="font-display text-xl">Analytics and advertising</h2>
           <ul className="mt-3 list-inside list-disc space-y-2 text-mute">
-            <li>No analytics or tracking of any kind is built into NoorHub.</li>
-            <li>No advertising or third-party trackers are included.</li>
-            <li>No data is sold or shared with anyone.</li>
-            <li>No notifications are sent, and no notification permission is requested.</li>
+            <li>No analytics package is built into NoorHub.</li>
+            <li>No advertising or third-party behavioral tracker is included.</li>
+            <li>No personal data is sold or shared.</li>
+            <li>No push notifications are sent.</li>
           </ul>
         </section>
 
         <section>
-          <h2 className="font-display text-xl">Third-party requests</h2>
+          <h2 className="font-display text-xl">Clear your data</h2>
           <p className="mt-3">
-            Quran text, translations, recitation audio, hadith text and metal prices are fetched from
-            the sources listed on the{" "}
-            <Link href="/about#sources" className="link-quiet">
-              About page
+            Use the “Clear all local data” control in{" "}
+            <Link href="/settings" className="link-quiet">
+              Settings
             </Link>
-            . Those services see the request, including your IP address, as with any web request.
-            Nothing else about you is sent with it.
-          </p>
-        </section>
-
-        <section>
-          <h2 className="font-display text-xl">Deleting your data</h2>
-          <p className="mt-3">
-            Ask through the{" "}
-            <Link href="/contact" className="link-quiet">
-              contact form
-            </Link>{" "}
-            and your account record, bookmarks, progress, favourites and sessions will be deleted.
+            , or clear this site’s storage in your browser. There is no remote copy to request or
+            delete.
           </p>
         </section>
       </div>

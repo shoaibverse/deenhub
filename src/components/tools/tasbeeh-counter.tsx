@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState, useTransition } from "react";
+import { useCallback, useEffect, useState } from "react";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Note, Segmented } from "@/components/ui/primitives";
 import { MinusIcon, PlusIcon, RefreshIcon } from "@/components/ui/icons";
-import { saveTasbeehSession } from "@/lib/actions/library";
+import { useLocalTasbeehHistory } from "@/hooks/use-local-data";
 import { TASBEEH_KEY } from "@/lib/preferences";
 import { cn } from "@/lib/utils/cn";
 
@@ -21,20 +21,15 @@ const TARGETS = [33, 99, 100];
 
 type Stored = { dhikr: string; target: number; count: number };
 
-export function TasbeehCounter({
-  signedIn,
-  history,
-}: {
-  signedIn: boolean;
-  history: Array<{ id: string; dhikr: string; target: number; count: number; updatedAt: string }>;
-}) {
+export function TasbeehCounter() {
+  const localHistory = useLocalTasbeehHistory();
+  const history = localHistory.sessions;
   const [dhikrId, setDhikrId] = useState(DHIKR[0].id);
   const [target, setTarget] = useState(33);
   const [customTarget, setCustomTarget] = useState("");
   const [count, setCount] = useState(0);
   const [loaded, setLoaded] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
 
   useEffect(() => {
     try {
@@ -97,19 +92,13 @@ export function TasbeehCounter({
   }, [increment]);
 
   const saveSession = () => {
-    if (!signedIn) {
-      setMessage("Sign in to keep a record of your dhikr.");
-      return;
-    }
     if (count === 0) return;
-    startTransition(async () => {
-      const result = await saveTasbeehSession({
-        dhikr: dhikr.transliteration,
-        target: effectiveTarget,
-        count,
-      });
-      setMessage(result.error ?? "Session saved.");
+    localHistory.saveSession({
+      dhikr: dhikr.transliteration,
+      target: effectiveTarget,
+      count,
     });
+    setMessage("Session saved on this device.");
   };
 
   return (
@@ -233,7 +222,7 @@ export function TasbeehCounter({
         </div>
 
         <div className="mt-8 flex flex-wrap items-center gap-3">
-          <Button onClick={saveSession} disabled={pending || count === 0} size="sm">
+          <Button onClick={saveSession} disabled={count === 0} size="sm">
             Save this session
           </Button>
           {message ? (
@@ -242,43 +231,37 @@ export function TasbeehCounter({
             </span>
           ) : null}
         </div>
-        {!signedIn ? (
-          <p className="mt-3 text-[0.8125rem] text-mute">
-            <Link href="/login?next=/tasbeeh" className="link-quiet">
-              Sign in
-            </Link>{" "}
-            to keep a history of your sessions. Your current count is already saved on this device.
-          </p>
-        ) : null}
+        <p className="mt-3 text-[0.8125rem] text-mute">
+          Your current count and saved sessions stay only in this browser. No account or database is
+          used.
+        </p>
       </div>
 
-      {signedIn ? (
-        <div className="surface rounded-[14px] p-5 sm:p-6">
-          <h2 className="font-display text-lg">Your recent sessions</h2>
-          {history.length === 0 ? (
-            <p className="mt-3 text-[0.875rem] text-mute">
-              No sessions saved yet. Your counted dhikr will appear here once you save one.
-            </p>
-          ) : (
-            <ul className="mt-4 divide-y divide-[color:var(--line)]">
-              {history.map((session) => (
-                <li key={session.id} className="flex items-baseline justify-between gap-3 py-3">
-                  <span className="text-[0.875rem]">{session.dhikr}</span>
-                  <span className="text-[0.75rem] text-mute">
-                    {session.count} of {session.target} ·{" "}
-                    {new Intl.DateTimeFormat("en-GB", {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    }).format(new Date(session.updatedAt))}
-                  </span>
-                </li>
-              ))}
-            </ul>
-          )}
-        </div>
-      ) : null}
+      <div className="surface rounded-[14px] p-5 sm:p-6">
+        <h2 className="font-display text-lg">Your recent sessions</h2>
+        {history.length === 0 ? (
+          <p className="mt-3 text-[0.875rem] text-mute">
+            No sessions saved yet. Your counted dhikr will appear here once you save one.
+          </p>
+        ) : (
+          <ul className="mt-4 divide-y divide-[color:var(--line)]">
+            {history.map((session) => (
+              <li key={session.id} className="flex items-baseline justify-between gap-3 py-3">
+                <span className="text-[0.875rem]">{session.dhikr}</span>
+                <span className="text-[0.75rem] text-mute">
+                  {session.count} of {session.target} ·{" "}
+                  {new Intl.DateTimeFormat("en-GB", {
+                    day: "numeric",
+                    month: "short",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  }).format(new Date(session.updatedAt))}
+                </span>
+              </li>
+            ))}
+          </ul>
+        )}
+      </div>
 
       <Note>
         These are the phrases most often counted on a tasbeeh. Their wording and reported rewards

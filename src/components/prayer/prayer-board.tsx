@@ -1,42 +1,17 @@
 "use client";
 
-import { useEffect, useState, useTransition } from "react";
-import Link from "next/link";
 import { usePrayerTimes, useStoredLocation } from "@/hooks/use-prayer-location";
 import { Button, IconButton } from "@/components/ui/button";
 import { ErrorState, Note, Segmented, inputClass } from "@/components/ui/primitives";
 import { LocationIcon, RefreshIcon } from "@/components/ui/icons";
 import { PRAYER_METHODS, REFERENCE_CITIES } from "@/lib/prayer/service";
 import { formatCountdown, formatTime } from "@/lib/utils/cn";
-import { updatePreferencesAction } from "@/lib/actions/library";
 import { cn } from "@/lib/utils/cn";
 
-export function PrayerBoard({ signedIn }: { signedIn: boolean }) {
+export function PrayerBoard() {
   const { location, loaded, status, requestDeviceLocation, setManualLocation, clearLocation } =
     useStoredLocation();
   const { computation, next, now } = usePrayerTimes();
-  const [saving, startTransition] = useTransition();
-  const [savedMessage, setSavedMessage] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (!savedMessage) return;
-    const timer = window.setTimeout(() => setSavedMessage(null), 2600);
-    return () => window.clearTimeout(timer);
-  }, [savedMessage]);
-
-  const saveToAccount = () => {
-    if (!location) return;
-    startTransition(async () => {
-      const result = await updatePreferencesAction({
-        prayerMethod: location.method,
-        asrJuristic: location.asrJuristic,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        locationLabel: location.label,
-      });
-      setSavedMessage(result.error ?? "Saved to your account.");
-    });
-  };
 
   return (
     <div className="space-y-8">
@@ -45,7 +20,7 @@ export function PrayerBoard({ signedIn }: { signedIn: boolean }) {
         <h2 className="font-display text-lg">Location</h2>
         <p className="mt-1.5 text-[0.875rem] leading-relaxed text-mute">
           NoorHub does not guess where you are. Allow location access, or pick a place manually.
-          Coordinates stay on your device unless you save them to your account.
+          Coordinates and your calculation method stay only in this browser.
         </p>
 
         <div className="mt-5 flex flex-wrap items-center gap-3">
@@ -149,25 +124,10 @@ export function PrayerBoard({ signedIn }: { signedIn: boolean }) {
         </div>
 
         {location ? (
-          <div className="mt-5 flex flex-wrap items-center gap-3">
-            {signedIn ? (
-              <Button variant="secondary" size="sm" onClick={saveToAccount} disabled={saving}>
-                Save to my account
-              </Button>
-            ) : (
-              <p className="text-[0.8125rem] text-mute">
-                <Link href="/login?next=/prayer" className="link-quiet">
-                  Sign in
-                </Link>{" "}
-                to remember this location and method.
-              </p>
-            )}
-            {savedMessage ? (
-              <span role="status" className="text-[0.8125rem] text-mute">
-                {savedMessage}
-              </span>
-            ) : null}
-          </div>
+          <p className="mt-5 text-[0.8125rem] leading-relaxed text-mute">
+            This location and calculation method are saved automatically in this browser only. No
+            account or database is used.
+          </p>
         ) : null}
       </section>
 

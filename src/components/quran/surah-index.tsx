@@ -6,6 +6,7 @@ import type { JuzMeta, SurahMeta } from "@/types";
 import { cn } from "@/lib/utils/cn";
 import { Segmented } from "@/components/ui/primitives";
 import { inputClass } from "@/components/ui/primitives";
+import { useLocalQuranProgress } from "@/hooks/use-local-data";
 
 type Filter = "all" | "meccan" | "medinan";
 
@@ -21,6 +22,13 @@ export function SurahIndex({
   const [query, setQuery] = useState("");
   const [filter, setFilter] = useState<Filter>("all");
   const [view, setView] = useState<"surah" | "juz">("surah");
+  const localProgress = useLocalQuranProgress();
+  const effectiveLastRead = localProgress.progress[0]
+    ? {
+        surahNumber: localProgress.progress[0].surahNumber,
+        lastAyah: localProgress.progress[0].lastAyah,
+      }
+    : lastRead;
 
   const filtered = useMemo(() => {
     const needle = query.trim().toLowerCase();
@@ -34,7 +42,7 @@ export function SurahIndex({
         String(surah.number) === needle
       );
     });
-  }, [surahs, query, filter, lastRead]);
+  }, [surahs, query, filter]);
 
   return (
     <div>
@@ -104,8 +112,8 @@ export function SurahIndex({
                     </span>
                     <span className="mt-0.5 block text-[0.75rem] text-mute">
                       {surah.numberOfAyahs} ayahs · {surah.revelationType}
-                      {lastRead?.surahNumber === surah.number
-                        ? ` · you stopped at ayah ${lastRead.lastAyah}`
+                      {effectiveLastRead?.surahNumber === surah.number
+                        ? ` · you stopped at ayah ${effectiveLastRead.lastAyah}`
                         : ""}
                     </span>
                   </span>

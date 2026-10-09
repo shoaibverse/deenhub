@@ -27,10 +27,11 @@ export default function TermsPage() {
         </section>
 
         <section>
-          <h2 className="font-display text-xl">Your account</h2>
+          <h2 className="font-display text-xl">Local data</h2>
           <p className="mt-3">
-            You are responsible for keeping your password safe and for what happens through your
-            account. Do not use NoorHub in a way that breaks the law or the rights of others.
+            NoorHub does not provide accounts or cloud storage. Personal settings and activity are
+            stored in your browser. You are responsible for keeping any local backup you need and for
+            using NoorHub in a way that respects the law and the rights of others.
           </p>
         </section>
 

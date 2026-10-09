@@ -1,36 +1,40 @@
 "use client";
 
-import { useState, useTransition } from "react";
-import { useRouter } from "next/navigation";
-import { BookmarkIcon, CheckIcon, CopyIcon, HeartIcon, PauseIcon, PlayIcon, ShareIcon } from "@/components/ui/icons";
+import { useState } from "react";
+import {
+  BookmarkIcon,
+  CheckIcon,
+  CopyIcon,
+  HeartIcon,
+  PauseIcon,
+  PlayIcon,
+  ShareIcon,
+} from "@/components/ui/icons";
 import { IconButton } from "@/components/ui/button";
-import { toggleBookmark, toggleFavoriteDua } from "@/lib/actions/library";
 import { usePreferences } from "@/components/providers/preferences-provider";
+import { useLocalBookmarks, useLocalFavoriteDuas } from "@/hooks/use-local-data";
 import type { DuaEntry } from "@/types";
 import { duaReference } from "@/lib/dua/service";
 import { cn } from "@/lib/utils/cn";
 
 export function DuaCard({
   entry,
-  signedIn,
-  favorited = false,
   defaultOpen = true,
   className,
 }: {
   entry: DuaEntry;
-  signedIn: boolean;
+  signedIn?: boolean;
   favorited?: boolean;
   defaultOpen?: boolean;
   className?: string;
 }) {
   const { preferences } = usePreferences();
-  const [saved, setSaved] = useState(favorited);
+  const favorites = useLocalFavoriteDuas();
+  const saved = favorites.has(entry.id);
   const [message, setMessage] = useState<string | null>(null);
   const [copied, setCopied] = useState(false);
   const [open, setOpen] = useState(defaultOpen);
   const [audio, setAudio] = useState<{ element: HTMLAudioElement; lineIndex: number } | null>(null);
-  const [pending, startTransition] = useTransition();
-  const router = useRouter();
 
   const notify = (text: string | null) => {
     setMessage(text);
@@ -38,19 +42,8 @@ export function DuaCard({
   };
 
   const onFavorite = () => {
-    if (!signedIn) {
-      router.push("/login?next=/duas");
-      return;
-    }
-    startTransition(async () => {
-      const result = await toggleFavoriteDua(entry.id);
-      if (result.error) {
-        notify(result.error);
-        return;
-      }
-      setSaved((value) => !value);
-      notify(result.message ?? null);
-    });
+    const nowSaved = favorites.toggle(entry.id);
+    notify(nowSaved ? "Saved on this device." : "Removed from favorites.");
   };
 
   const onCopy = async () => {
@@ -110,10 +103,7 @@ export function DuaCard({
   return (
     <article
       id={entry.id}
-      className={cn(
-        "surface scroll-mt-24 rounded-[14px] p-5 sm:p-6",
-        className,
-      )}
+      className={cn("surface scroll-mt-24 rounded-[14px] p-5 sm:p-6", className)}
     >
       <div className="flex flex-wrap items-start justify-between gap-3">
         <div className="min-w-0">
@@ -124,16 +114,13 @@ export function DuaCard({
           </p>
         </div>
         <div className="flex items-center gap-1">
-          {signedIn ? (
-            <IconButton
-              label={saved ? "Remove from favourite duas" : "Save to favourite duas"}
-              onClick={onFavorite}
-              disabled={pending}
-              className={cn("text-mute hover:text-gold", saved && "text-gold")}
-            >
-              <HeartIcon filled={saved} width={18} height={18} />
-            </IconButton>
-          ) : null}
+          <IconButton
+            label={saved ? "Remove from favorite duas" : "Save to favorite duas"}
+            onClick={onFavorite}
+            className={cn("text-mute hover:text-gold", saved && "text-gold")}
+          >
+            <HeartIcon filled={saved} width={18} height={18} />
+          </IconButton>
           <IconButton label="Copy dua" onClick={onCopy} className="text-mute hover:text-emerald">
             {copied ? <CheckIcon width={18} height={18} /> : <CopyIcon width={18} height={18} />}
           </IconButton>
@@ -218,8 +205,6 @@ export function SaveBookmarkButton({
   reference,
   href,
   snippet,
-  saved: initialSaved,
-  signedIn,
   labels = { save: "Save", saved: "Saved" },
 }: {
   itemType: "quran" | "hadith" | "dua";
@@ -229,38 +214,26 @@ export function SaveBookmarkButton({
   reference?: string | null;
   href: string;
   snippet?: string | null;
-  saved: boolean;
-  signedIn: boolean;
+  saved?: boolean;
+  signedIn?: boolean;
   labels?: { save: string; saved: string };
 }) {
-  const [saved, setSaved] = useState(initialSaved);
+  const local = useLocalBookmarks();
+  const saved = local.has(itemType, itemId);
   const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  const router = useRouter();
 
   const onClick = () => {
-    if (!signedIn) {
-      router.push(`/login?next=${encodeURIComponent(href)}`);
-      return;
-    }
-    startTransition(async () => {
-      const result = await toggleBookmark({
-        itemType,
-        itemId,
-        title,
-        subtitle,
-        reference,
-        href,
-        snippet,
-      });
-      if (result.error) {
-        setMessage(result.error);
-        return;
-      }
-      setSaved((value) => !value);
-      setMessage(result.message ?? null);
-      window.setTimeout(() => setMessage(null), 2400);
+    const nowSaved = local.toggle({
+      itemType,
+      itemId,
+      title,
+      subtitle: subtitle ?? null,
+      reference: reference ?? null,
+      href,
+      snippet: snippet ?? null,
     });
+    setMessage(nowSaved ? "Saved on this device." : "Bookmark removed.");
+    window.setTimeout(() => setMessage(null), 2200);
   };
 
   return (
@@ -268,7 +241,6 @@ export function SaveBookmarkButton({
       <button
         type="button"
         onClick={onClick}
-        disabled={pending}
         className={cn(
           "inline-flex items-center gap-1.5 rounded-full border px-3 py-1.5 text-[0.75rem] transition-colors",
           saved

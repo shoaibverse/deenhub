@@ -1,106 +1,37 @@
 "use client";
 
-import { useActionState, useEffect, useState, useTransition } from "react";
+import { useState } from "react";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { usePreferences } from "@/components/providers/preferences-provider";
 import { ThemeSegmented } from "@/components/navigation/theme-toggle";
 import { Button } from "@/components/ui/button";
 import { Field, Note, Segmented, inputClass } from "@/components/ui/primitives";
+import { useStoredLocation } from "@/hooks/use-prayer-location";
 import { ARABIC_FONT_MAX, ARABIC_FONT_MIN } from "@/lib/preferences";
 import { RECITERS, TRANSLATIONS } from "@/lib/quran/service";
 import { PRAYER_METHODS, REFERENCE_CITIES } from "@/lib/prayer/service";
-import { updatePreferencesAction } from "@/lib/actions/library";
-import { updateAccountAction, signOutAction, type AuthState } from "@/lib/actions/auth";
+import { clearAllNoorHubLocalData } from "@/lib/local-data";
 import { cn } from "@/lib/utils/cn";
 
-export function SettingsForm({
-  account,
-  saved,
-}: {
-  account: { email: string; displayName: string };
-  saved: {
-    prayerMethod: string;
-    asrJuristic: "standard" | "hanafi";
-    latitude: number | null;
-    longitude: number | null;
-    locationLabel: string | null;
-    notifyPrayer: boolean;
-  };
-}) {
-  const { preferences, update } = usePreferences();
-  const [method, setMethod] = useState(saved.prayerMethod);
-  const [asr, setAsr] = useState<"standard" | "hanafi">(saved.asrJuristic);
-  const [location, setLocation] = useState({
-    label: saved.locationLabel ?? "",
-    latitude: saved.latitude,
-    longitude: saved.longitude,
-  });
-  const [notify, setNotify] = useState(saved.notifyPrayer);
+export function SettingsForm() {
+  const { preferences, update, reset } = usePreferences();
+  const { location, requestDeviceLocation, setManualLocation, clearLocation } = useStoredLocation();
   const [message, setMessage] = useState<string | null>(null);
-  const [pending, startTransition] = useTransition();
-  const [nameState, nameAction, namePending] = useActionState<AuthState, FormData>(
-    updateAccountAction,
-    { error: null },
-  );
-  const router = useRouter();
 
-  useEffect(() => {
-    if (!message) return;
-    const timer = window.setTimeout(() => setMessage(null), 3000);
-    return () => window.clearTimeout(timer);
-  }, [message]);
-
-  const save = () => {
-    startTransition(async () => {
-      const result = await updatePreferencesAction({
-        theme: preferences.theme,
-        arabicFontSize: preferences.arabicFontSize,
-        translationEdition: preferences.translationEdition,
-        showTranslation: preferences.showTranslation,
-        showTransliteration: preferences.showTransliteration,
-        reciter: preferences.reciter,
-        prayerMethod: method,
-        asrJuristic: asr,
-        latitude: location.latitude,
-        longitude: location.longitude,
-        locationLabel: location.label || null,
-        notifyPrayer: notify,
-      });
-      setMessage(result.error ?? "Settings saved.");
-      router.refresh();
-    });
-  };
-
-  const requestLocation = () => {
-    if (!navigator.geolocation) {
-      setMessage("This browser does not provide location.");
-      return;
-    }
-    navigator.geolocation.getCurrentPosition(
-      (position) => {
-        setLocation({
-          label: `Device location (${position.coords.latitude.toFixed(2)}, ${position.coords.longitude.toFixed(2)})`,
-          latitude: position.coords.latitude,
-          longitude: position.coords.longitude,
-        });
-        setMessage("Location captured. Save to keep it with your account.");
-      },
-      () => setMessage("Location permission was declined."),
-      { timeout: 10000 },
-    );
+  const notify = (text: string) => {
+    setMessage(text);
+    window.setTimeout(() => setMessage(null), 3000);
   };
 
   return (
     <div className="space-y-8">
-      {/* Appearance ------------------------------------------------------ */}
       <section className="surface rounded-[14px] p-5 sm:p-6">
         <h2 className="font-display text-lg">Appearance</h2>
         <div className="mt-5 space-y-6">
           <div>
             <p className="text-[0.8125rem] font-medium">Theme</p>
             <p className="mt-1 text-[0.75rem] text-mute">
-              System follows your device setting. Motion respects your reduced-motion preference.
+              Dark is the default. System follows your device setting.
             </p>
             <div className="mt-3">
               <ThemeSegmented />
@@ -108,10 +39,7 @@ export function SettingsForm({
           </div>
 
           <div>
-            <label
-              htmlFor="arabic-size"
-              className="text-[0.8125rem] font-medium"
-            >
+            <label htmlFor="arabic-size" className="text-[0.8125rem] font-medium">
               Arabic text size
             </label>
             <p className="mt-1 text-[0.75rem] text-mute">
@@ -130,25 +58,17 @@ export function SettingsForm({
             <p
               className="font-arabic mt-3 text-right leading-[2]"
               lang="ar"
+              dir="rtl"
               style={{ fontSize: `${preferences.arabicFontSize}px` }}
             >
               ٱلْحَمْدُ لِلَّهِ رَبِّ ٱلْعَٰلَمِينَ
             </p>
           </div>
-
-          <div>
-            <p className="text-[0.8125rem] font-medium">Language</p>
-            <p className="mt-1 text-[0.75rem] text-mute">
-              NoorHub’s interface is available in English. The Quran and duas include Arabic with a
-              choice of translation.
-            </p>
-          </div>
         </div>
       </section>
 
-      {/* Reading --------------------------------------------------------- */}
       <section className="surface rounded-[14px] p-5 sm:p-6">
-        <h2 className="font-display text-lg">Reading</h2>
+        <h2 className="font-display text-lg">Quran reading</h2>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <Field label="Translation" htmlFor="settings-translation">
             <select
@@ -212,15 +132,17 @@ export function SettingsForm({
         </div>
       </section>
 
-      {/* Prayer ---------------------------------------------------------- */}
       <section className="surface rounded-[14px] p-5 sm:p-6">
         <h2 className="font-display text-lg">Prayer</h2>
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
           <Field label="Calculation method" htmlFor="settings-method">
             <select
               id="settings-method"
-              value={method}
-              onChange={(event) => setMethod(event.target.value)}
+              value={location?.method ?? preferences.prayerMethod}
+              onChange={(event) => {
+                update({ prayerMethod: event.target.value });
+                if (location) setManualLocation({ ...location, method: event.target.value });
+              }}
               className={cn(inputClass, "h-11")}
             >
               {PRAYER_METHODS.map((item) => (
@@ -235,8 +157,11 @@ export function SettingsForm({
             <div className="mt-2">
               <Segmented
                 label="Asr calculation"
-                value={asr}
-                onChange={setAsr}
+                value={location?.asrJuristic ?? preferences.asrJuristic}
+                onChange={(value) => {
+                  update({ asrJuristic: value });
+                  if (location) setManualLocation({ ...location, asrJuristic: value });
+                }}
                 options={[
                   { value: "standard", label: "Standard" },
                   { value: "hanafi", label: "Hanafi" },
@@ -247,22 +172,26 @@ export function SettingsForm({
         </div>
 
         <div className="mt-5 grid gap-5 sm:grid-cols-2">
-          <Field label="Location" htmlFor="settings-location" hint="Stored with your account">
+          <Field label="Location" htmlFor="settings-location" hint="Stored only in this browser">
             <select
               id="settings-location"
               value=""
               onChange={(event) => {
                 const city = REFERENCE_CITIES.find((item) => item.label === event.target.value);
                 if (!city) return;
-                setLocation({
+                setManualLocation({
                   label: city.label,
                   latitude: city.latitude,
                   longitude: city.longitude,
+                  source: "manual",
+                  method: location?.method ?? preferences.prayerMethod,
+                  asrJuristic: location?.asrJuristic ?? preferences.asrJuristic,
                 });
+                notify("Location saved in this browser.");
               }}
               className={cn(inputClass, "h-11")}
             >
-              <option value="">{location.label || "Choose a city…"}</option>
+              <option value="">{location?.label || "Choose a city…"}</option>
               {REFERENCE_CITIES.map((city) => (
                 <option key={city.label} value={city.label}>
                   {city.label}
@@ -270,120 +199,68 @@ export function SettingsForm({
               ))}
             </select>
           </Field>
-          <div className="flex items-end">
-            <Button variant="secondary" size="sm" onClick={requestLocation}>
-              Use my current location
+          <div className="flex flex-wrap items-end gap-2">
+            <Button variant="secondary" size="sm" onClick={requestDeviceLocation}>
+              Use current location
             </Button>
+            {location ? (
+              <Button variant="ghost" size="sm" onClick={clearLocation}>
+                Clear location
+              </Button>
+            ) : null}
           </div>
-        </div>
-
-        <div className="mt-6">
-          <label className="flex items-center gap-3 text-[0.875rem]">
-            <input
-              type="checkbox"
-              checked={notify}
-              onChange={(event) => setNotify(event.target.checked)}
-              className="size-4 accent-emerald"
-            />
-            Save prayer notification preference
-          </label>
-          <p className="mt-2 text-[0.75rem] leading-relaxed text-mute">
-            This stores your choice with your account. NoorHub does not currently send any
-            notifications, and it does not ask your browser for notification permission.
-          </p>
         </div>
       </section>
 
-      {/* Account --------------------------------------------------------- */}
       <section className="surface rounded-[14px] p-5 sm:p-6">
-        <h2 className="font-display text-lg">Account</h2>
-        <form action={nameAction} className="mt-5 space-y-5">
-          <Field label="Display name" htmlFor="displayName">
-            <input
-              id="displayName"
-              name="displayName"
-              defaultValue={account.displayName}
-              className={inputClass}
-              placeholder="Your name"
-            />
-          </Field>
-          <Field label="Email" htmlFor="email-static" hint="Used only to sign in">
-            <input
-              id="email-static"
-              value={account.email}
-              readOnly
-              className={cn(inputClass, "text-mute")}
-            />
-          </Field>
-          {nameState.error ? (
-            <p role="alert" className="text-[0.8125rem] text-red-700 dark:text-red-300">
-              {nameState.error}
-            </p>
-          ) : null}
-          <div className="flex flex-wrap items-center gap-3">
-            <Button type="submit" variant="secondary" size="sm" disabled={namePending}>
-              {namePending ? "Saving…" : "Update name"}
-            </Button>
-          </div>
-        </form>
-        <form action={signOutAction} className="mt-5">
-          <button
-            type="submit"
-            className="rounded-full border border-[color:var(--line)] px-4 py-2 text-[0.8125rem] text-mute hover:border-red-300 hover:text-red-700 dark:hover:border-red-900 dark:hover:text-red-300"
-          >
-            Sign out
-          </button>
-        </form>
-      </section>
-
-      {/* Privacy --------------------------------------------------------- */}
-      <section className="surface rounded-[14px] p-5 sm:p-6">
-        <h2 className="font-display text-lg">Privacy</h2>
+        <h2 className="font-display text-lg">Privacy and local data</h2>
         <p className="mt-2 text-[0.875rem] leading-relaxed text-mute">
-          Reading preferences, your tasbeeh count and your location choice are kept in this browser’s
-          local storage so they survive a page reload. Clearing them does not affect your account.
+          NoorHub stores preferences, bookmarks, favorites, Quran progress, location and Tasbeeh
+          history in this browser’s local storage. It does not send personal data to a NoorHub
+          database because no database connection is used.
         </p>
-        <div className="mt-4">
+        <div className="mt-5 flex flex-wrap gap-3">
           <Button
             variant="secondary"
             size="sm"
             onClick={() => {
-              try {
-                window.localStorage.removeItem("noorhub.preferences.v1");
-                window.localStorage.removeItem("noorhub.tasbeeh.v1");
-                window.localStorage.removeItem("noorhub.location.v1");
-                window.localStorage.removeItem("noorhub.recent-searches.v1");
-                setMessage("Local data cleared. Reload the page to see the defaults.");
-              } catch {
-                setMessage("Local storage is not available in this browser.");
-              }
+              reset();
+              notify("Reading and appearance preferences reset.");
             }}
           >
-            Clear local data
+            Reset preferences
+          </Button>
+          <Button
+            variant="danger"
+            size="sm"
+            onClick={() => {
+              if (!window.confirm("Clear all NoorHub data saved in this browser? This cannot be undone.")) {
+                return;
+              }
+              clearAllNoorHubLocalData();
+              notify("All local NoorHub data cleared.");
+              window.setTimeout(() => window.location.reload(), 500);
+            }}
+          >
+            Clear all local data
           </Button>
         </div>
         <p className="mt-4 text-[0.75rem] text-mute">
           <Link href="/privacy" className="link-quiet">
             Read the privacy page
-          </Link>{" "}
-          for what is stored on the server.
+          </Link>
+          . Clearing browser site data has the same effect.
         </p>
       </section>
 
-      <div className="flex flex-wrap items-center gap-4">
-        <Button onClick={save} disabled={pending}>
-          {pending ? "Saving…" : "Save settings"}
-        </Button>
-        {message ? (
-          <span role="status" className="text-[0.875rem] text-mute">
-            {message}
-          </span>
-        ) : null}
-      </div>
+      {message ? (
+        <p role="status" className="text-[0.875rem] text-gold">
+          {message}
+        </p>
+      ) : null}
 
       <Note>
-        Settings are kept in this browser immediately. Choosing “Save settings” also stores them with
-        your account so they follow you to another device.
+        Changes save automatically on this device. There is no sign-in, cloud sync or database.
       </Note>
     </div>
   );

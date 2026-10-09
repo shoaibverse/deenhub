@@ -39,6 +39,21 @@ export default function AboutPage() {
         </section>
 
         <section>
+          <h2 className="font-display text-xl">Local-first, with no database</h2>
+          <p className="mt-3">
+            NoorHub does not require PostgreSQL, Supabase, an account or any authentication setup.
+            Bookmarks, favorite duas, Quran progress, reading history, prayer location, preferences
+            and Tasbeeh sessions are stored in the visitor’s browser. The application can be built
+            and started without a database environment variable.
+          </p>
+          <p className="mt-3">
+            Local data does not sync between devices, and clearing browser site storage removes it.
+            Content such as Quran, Tafseer, hadith and live metal prices still comes from the
+            attributed public sources listed below.
+          </p>
+        </section>
+
+        <section>
           <h2 className="font-display text-xl">Why it exists</h2>
           <p className="mt-3">
             Islamic resources are scattered across many sites of uneven quality. Some mix sourced
